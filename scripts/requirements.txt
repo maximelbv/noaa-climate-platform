@@ -2,3 +2,4 @@ requests
 tqdm
 psycopg2==2.9.7
 pymongo
+elasticsearch

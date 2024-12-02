@@ -218,6 +218,24 @@ db.storm_events.find().limit(10)
 
 (you can quit the process with the `\q` command)
 
+### Index data to Elastic Search
+
+```
+python3 scripts/elasticsearch/index_data.py
+```
+
+you can verify if the indexes are created by listing them:
+
+```bash
+curl -X GET "localhost:9200/_cat/indices?v"
+```
+
+or by getting the 10 first indexes:
+
+```bash
+curl -X GET "localhost:9200/mongo_storm_events_data/_search?pretty"
+```
+
 ## Querries List
 
 > To analyse datas, you can make classic queries to each databases. I listed some usefull queries to analyse the data. You can also make more advanced and optimized queries with Elastic Search. I also listed a bunch of examples.
@@ -498,6 +516,121 @@ db.storm_events.createIndex({ "BEGIN_DATE_TIME": 1 })
 db.storm_events.find({
     BEGIN_DATE_TIME: { $gte: "01-AUG-19", $lte: "31-AUG-19" }
 })
+
+```
+
+</details>
+
+<details>
+ <summary><strong>Querying with Elastic Search (structured data only for the moment)<strong></summary>
+
+```bash
+# Get all events of type "Thunderstorm Wind"
+curl -X GET "localhost:9200/mongo_storm_events_data/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "match": {
+      "EVENT_TYPE": "Thunderstorm Wind"
+    }
+  }
+}
+'
+```
+
+```bash
+# Get events from a specific state (e.g., "NEW YORK")
+curl -X GET "localhost:9200/mongo_storm_events_data/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "term": {
+      "STATE.keyword": "NEW YORK"
+    }
+  }
+}
+'
+```
+
+```bash
+# Aggregate the total number of events by event type
+curl -X GET "localhost:9200/mongo_storm_events_data/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+  "size": 0,
+  "aggs": {
+    "events_by_type": {
+      "terms": {
+        "field": "EVENT_TYPE.keyword",
+        "size": 10
+      }
+    }
+  }
+}
+'
+```
+
+```bash
+# Get the most recent event in a specific state
+curl -X GET "localhost:9200/mongo_storm_events_data/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "term": {
+      "STATE.keyword": "NEW YORK"
+    }
+  },
+  "sort": [
+    {
+      "BEGIN_DATE_TIME": {
+        "order": "desc"
+      }
+    }
+  ],
+  "size": 1
+}
+'
+```
+
+```bash
+# Find events with significant damage (e.g., `DAMAGE_PROPERTY` > 1000)
+curl -X GET "localhost:9200/mongo_storm_events_data/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "range": {
+      "DAMAGE_PROPERTY": {
+        "gte": 1000
+      }
+    }
+  }
+}
+'
+```
+
+```bash
+# Search for events that occurred in a specific geographic region
+curl -X GET "localhost:9200/mongo_storm_events_data/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "range": {
+            "BEGIN_LAT": {
+              "gte": 40,
+              "lte": 41
+            }
+          }
+        },
+        {
+          "range": {
+            "BEGIN_LON": {
+              "gte": -75,
+              "lte": -74
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+'
 
 ```
 
