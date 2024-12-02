@@ -1,0 +1,169 @@
+services:
+  hadoop-namenode:
+    build:
+      context: ./hadoop
+    container_name: namenode
+    hostname: namenode
+    ports:
+      - "9870:9870"
+      - "9000:9000"
+    environment:
+      - HDFS_NAMENODE_USER=root
+    volumes:
+      - namenode-data:/hadoop/dfs/name
+    platform: linux/amd64
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+          cpus: "2.0"
+
+  hadoop-datanode1:
+    build:
+      context: ./hadoop
+    container_name: datanode1
+    hostname: datanode1
+    environment:
+      - HDFS_DATANODE_USER=root
+    volumes:
+      - datanode1-data:/hadoop/dfs/data
+    platform: linux/amd64
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+          cpus: "2.0"
+
+  hadoop-datanode2:
+    build:
+      context: ./hadoop
+    container_name: datanode2
+    hostname: datanode2
+    environment:
+      - HDFS_DATANODE_USER=root
+    volumes:
+      - datanode2-data:/hadoop/dfs/data
+    platform: linux/amd64
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+          cpus: "2.0"
+
+  backend:
+    build:
+      context: ../web-app/backend
+      dockerfile: ../../docker/backend/Dockerfile
+    container_name: backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - hadoop-namenode
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - HDFS_URL=hdfs://namenode:9000
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "1.0"
+
+  frontend:
+    build:
+      context: ../web-app/frontend
+      dockerfile: ../../docker/frontend/Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: "0.5"
+
+  elasticsearch:
+    build:
+      context: ./elasticsearch
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+          cpus: "2.0"
+
+  prometheus:
+    build:
+      context: ./prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "1.0"
+
+  grafana:
+    build:
+      context: ./grafana
+    container_name: grafana
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: "0.5"
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./docker/postgres-init/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:6.0
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongo_data:/data/db
+      - ./scripts:/docker-entrypoint-initdb.d/
+    command: ["mongod"]
+    restart: always
+
+volumes:
+  namenode-data:
+  datanode1-data:
+  datanode2-data:
+  elasticsearch-data:
+  grafana-data:
+  postgres_data:
+  mongo_data:
