@@ -236,6 +236,14 @@ or by getting the 10 first indexes:
 curl -X GET "localhost:9200/mongo_storm_events_data/_search?pretty"
 ```
 
+### Access the web-app
+
+Client: http://localhost:3000
+
+Server http://localhost:8000
+
+Server Endpoints: http://localhost:8000/docs
+
 ## Querries List
 
 > To analyse datas, you can make classic queries to each databases. I listed some usefull queries to analyse the data. You can also make more advanced and optimized queries with Elastic Search. I also listed a bunch of examples.
@@ -522,7 +530,7 @@ db.storm_events.find({
 </details>
 
 <details>
- <summary><strong>Querying with Elastic Search (structured data only for the moment)<strong></summary>
+ <summary><strong>Querying with Elastic Search (unstructured data only for the moment)<strong></summary>
 
 ```bash
 # Get all events of type "Thunderstorm Wind"

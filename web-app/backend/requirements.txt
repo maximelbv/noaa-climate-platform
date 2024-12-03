@@ -1,2 +1,8 @@
 fastapi
 uvicorn
+asyncpg
+elasticsearch==7.16.3
+psycopg2-binary
+pyjwt
+python-multipart
+passlib[bcrypt]

@@ -11,10 +11,6 @@ DATASETS = {
     "storm_events": {
         "folder": "storm_events",
         "collection": "storm_events"
-    },
-    "metar": {
-        "folder": "metar",
-        "collection": "metar"
     }
 }
 

@@ -58,11 +58,9 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - hadoop-namenode
       - elasticsearch
     environment:
       - ELASTICSEARCH_URL=http://elasticsearch:9200
-      - HDFS_URL=hdfs://namenode:9000
     deploy:
       resources:
         limits:
