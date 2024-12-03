@@ -35,7 +35,6 @@ def decode_access_token(token: str = Depends(oauth2_scheme)):
 # Public route for generating tokens
 @router.post("/token", tags=["Authentication"])
 def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    """Public route: Generate JWT tokens."""
     if form_data.username != "testuser" or form_data.password != "testpassword":
         raise HTTPException(status_code=401, detail="Invalid credentials")
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
